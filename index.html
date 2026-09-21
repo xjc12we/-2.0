@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>享交词 - xiangjiaoci.com</title>
+    <style>
+        :root {
+            --bg:#ffffff;
+            --text:#222222;
+            --card:#f8f8f8;
+            --border:#ddd;
+            --primary:#3671e9;
+        }
+        .dark{
+            --bg:#1a1a1a;
+            --text:#eee;
+            --card:#272727;
+            --border:#444;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+        body{background:var(--bg);color:var(--text);transition:0.3s;}
+        header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+        .search-area{flex:1;margin:0 16px}
+        #search{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text)}
+        .top-right{display:flex;gap:10px;align-items:center}
+        #themeBtn,#settingBtn{padding:6px 10px;border-radius:6px;border:none;background:var(--primary);color:white;cursor:pointer}
+        .container{display:grid;grid-template-columns:1fr 280px;min-height:calc(100vh - 114px)}
+        .main{padding:16px}
+        .chat-box{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:16px;background:var(--card)}
+        .community{border-left:1px solid var(--border);padding:16px;background:var(--card)}
+        footer.nav{position:fixed;bottom:0;left:0;right:0;height:60px;border-top:1px solid var(--border);display:flex;justify-content:center;gap:60px;align-items:center;background:var(--bg)}
+        .nav-item{cursor:pointer}
+        .filter-bar{margin:12px 0;display:flex;gap:8px}
+        .filter-btn{padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card);cursor:pointer}
+        .card{border:1px solid var(--border);border-radius:10px;padding:12px;margin:10px 0;background:var(--card)}
+        .card img,.card video{max-width:100%;border-radius:6px}
+        .page{display:none}
+        .page.active{display:block}
+        .form{max-width:420px;margin:30px auto;padding:20px;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+        .form input{width:100%;margin:8px 0;padding:9px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text)}
+        .form button{width:100%;padding:10px;margin-top:8px;background:var(--primary);color:white;border:none;border-radius:7px;cursor:pointer}
+        .admin-panel{background:#ffe8e8;border:1px solid #f8aaaa;padding:12px;border-radius:8px;margin:12px 0}
+        .setting-item{padding:10px;border-bottom:1px solid var(--border)}
+        .logout-del{color:red}
+    </style>
+</head>
+<body>
+    <!-- 登录注册页 -->
+    <div id="loginPage" class="page active">
+        <div class="form">
+            <h2>享交词 登录</h2>
+            <input id="loginEmail" placeholder="QQ邮箱">
+            <input id="loginPwd" type="password" placeholder="密码">
+            <button onclick="login()">登录</button>
+            <p style="text-align:center;margin:10px 0">没有账号？<a onclick="switchReg()">去注册</a></p>
+        </div>
+        <div class="form" id="regForm" style="display:none">
+            <h2>注册账号</h2>
+            <input id="regUser" placeholder="用户名（最多5个字）">
+            <input id="regEmail" placeholder="QQ邮箱">
+            <input id="regCode" placeholder="邮箱验证码">
+            <button onclick="sendCode()">发送验证码</button>
+            <input id="regPwd" type="password" placeholder="设置密码">
+            <button onclick="register()">注册</button>
+            <p style="text-align:center;margin:10px 0">已有账号？<a onclick="switchReg()">返回登录</a></p>
+        </div>
+    </div>
+
+    <!-- 主程序界面 -->
+    <div id="mainPage" class="page">
+        <header>
+            <div class="search-area">
+                <input id="search" placeholder="搜索作品、用户..." />
+                <div class="filter-bar">
+                    <div class="filter-btn">全部</div>
+                    <div class="filter-btn">图片</div>
+                    <div class="filter-btn">按时间排序</div>
+                </div>
+            </div>
+            <div class="top-right">
+                <button id="themeBtn">昼夜切换</button>
+                <button id="settingBtn" onclick="openSetting()">设置</button>
+            </div>
+        </header>
+        <div class="container">
+            <div class="main">
+                <div class="chat-box">
+                    <h3>好友聊天</h3>
+                    <div id="chatContent" style="height:160px;overflow:auto;margin-bottom:8px">
+                        <div>系统：前端演示，实时通信需要后端支持</div>
+                    </div>
+                    <input id="chatInput" placeholder="输入消息">
+                    <button onclick="sendChat()">发送</button>
+                </div>
+                <div>
+                    <h3>上传作品（PNG/JPG/MP4）</h3>
+                    <input type="file" id="uploadFile" accept="image/png,image/jpeg,video/mp4">
+                    <button onclick="uploadWork()">上传预览</button>
+                    <div id="previewBox"></div>
+                </div>
+                <div id="worksList"></div>
+                <!--管理员面板-->
+                <div id="adminBox" class="admin-panel" style="display:none">
+                    <h3>管理员后台</h3>
+                    <p>功能：删除作品、封禁用户账号（前端演示）</p>
+                </div>
+            </div>
+            <div class="community">
+                <h3>社区最新</h3>
+                <div id="communityList">
+                    <div class="card">
+                        <p>用户示例作品</p>
+                        <img src="https://picsum.photos/id/237/300/200">
+                        <p>留言：好看！</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="nav">
+            <div class="nav-item" onclick="changeTab('home')">主页</div>
+            <div class="nav-item" onclick="changeTab('community')">社区</div>
+        </div>
+    </div>
+
+    <!-- 设置页面 -->
+    <div id="settingPage" class="page">
+        <div style="padding:20px">
+            <h2>设置</h2>
+            <div class="setting-item">
+                <label>修改用户名</label>
+                <input id="setUsername">
+                <button onclick="saveName()">保存</button>
+            </div>
+            <div class="setting-item">
+                <label>修改密码</label>
+                <input id="setPwd" type="password">
+            </div>
+            <div class="setting-item">
+                <label>个人简介</label>
+                <input id="setIntro">
+            </div>
+            <div class="setting-item">
+                <label>QQ邮箱</label>
+                <input id="setMail">
+            </div>
+            <div class="setting-item">
+                <h4>更多选项</h4>
+                <label><input type="checkbox"> 是否展示性别</label><br>
+                <label><input type="checkbox"> 是否公开QQ邮箱</label>
+            </div>
+            <div class="setting-item logout-del">
+                <button onclick="delAccount()">注销账号</button>
+            </div>
+            <div style="margin-top:30px;text-align:center">本网站网址：www.xiangjiaoci.com</div>
+            <button onclick="backHome()">返回主页</button>
+        </div>
+    </div>
+
+<script>
+    let user = null;
+    const adminMail = "3546710072@qq.com";
+    const adminPwd = "12121212we";
+
+    // 昼夜主题切换
+    document.getElementById('themeBtn').onclick = ()=>{
+        document.body.classList.toggle('dark')
+    }
+
+    function switchReg(){
+        let r = document.getElementById("regForm");
+        r.style.display = r.style.display=="none"?"block":"none"
+    }
+
+    function login(){
+        let em = document.getElementById("loginEmail").value.trim();
+        let pw = document.getElementById("loginPwd").value.trim();
+        if(em === adminMail && pw === adminPwd){
+            user = {isAdmin:true,email:em};
+            alert("管理员登录成功");
+            enterMain();
+            document.getElementById("adminBox").style.display="block";
+            return;
+        }
+        user = {isAdmin:false,email:em};
+        alert("普通用户登录（前端演示）");
+        enterMain();
+    }
+    function register(){
+        let un = document.getElementById("regUser").value.trim();
+        let em = document.getElementById("regEmail").value.trim();
+        if(un.length>5){alert("用户名不能超过5个字");return}
+        alert("注册提交，真实验证码功能需要后端服务");
+    }
+    function sendCode(){alert("正在发送QQ邮箱验证码（需要后端SMTP服务）")}
+    function enterMain(){
+        document.getElementById("loginPage").classList.remove("active");
+        document.getElementById("mainPage").classList.add("active");
+        document.getElementById("settingPage").classList.remove("active");
+    }
+    function openSetting(){
+        document.getElementById("mainPage").classList.remove("active");
+        document.getElementById("settingPage").classList.add("active");
+    }
+    function backHome(){
+        document.getElementById("settingPage").classList.remove("active");
+        document.getElementById("mainPage").classList.add("active");
+    }
+    function uploadWork(){
+        const fileInput = document.getElementById("uploadFile");
+        const previewBox = document.getElementById("previewBox");
+        if(!fileInput.files[0]){
+            alert("请选择文件");
+            return;
+        }
+        const file = fileInput.files[0];
+        const url = URL.createObjectURL(file);
+        if(file.type.startsWith("image/")){
+            previewBox.innerHTML += `<img src="${url}" style="max-width:240px">`
+        }else if(file.type.startsWith("video/")){
+            previewBox.innerHTML += `<video src="${url}" controls style="max-width:240px"></video>`
+        }
+    }
+    function sendChat(){
+        let val = document.getElementById("chatInput").value;
+        if(!val.trim()) return;
+        document.getElementById("chatContent").innerHTML += `<div>我：${val}</div>`;
+        document.getElementById("chatInput").value=""
+    }
+    function saveName(){alert("用户名已保存（前端演示）")}
+    function delAccount(){
+        if(confirm("确认注销账号？")){
+            user=null;
+            document.getElementById("mainPage").classList.remove("active");
+            document.getElementById("loginPage").classList.add("active");
+        }
+    }
+    function changeTab(tab){
+        console.log("切换页面：", tab)
+    }
+</script>
+</body>
+</html>
